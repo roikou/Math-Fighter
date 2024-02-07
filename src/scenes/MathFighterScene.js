@@ -33,6 +33,28 @@ export default class MathFighterScene extends Phaser.Scene
 
         this.number = 0
 
+        this.resultText = undefined
+
+        this.question = []
+
+        
+
+        this.correctAnswer = undefined
+
+        this.playerAttack = false
+
+        this.enemyAttack = false
+
+        this.score = 0
+
+        this.scoreLabel = undefined
+
+        this.timer = 10
+        this.timerLabel = undefined
+        this.countdown = undefined
+
+
+
     }
 
     preload(){
@@ -49,7 +71,7 @@ export default class MathFighterScene extends Phaser.Scene
             frameWidth: 80,
         })
 
-        this.load.spritesheet('numbers', 'images/numbers',{
+        this.load.spritesheet('numbers', 'images/numbers.png',{
             frameHeight: 71.25,
             frameWidth: 131,
         })
@@ -102,11 +124,41 @@ export default class MathFighterScene extends Phaser.Scene
         start_button.on('pointerdown', () => {
             this.gameStart()
             start_button.destroy()
-            this.createButtons()
+            //this.createButtons()
         }, this)
+
+        this.scoreLabel = this.add.text(10, 10,'score :',{
+            fill: 'white', backgroundColor:'black'
+        }).setDepth(1)
 
     }
     update(){
+        if(this.correctAnswer === true && !this.playerAttack) {
+            this.player.anims.play('player-attack', true)
+            this.time.delayedCall(500, () => {
+                this.createSlash(this.player.x+60,this.player.y,4, 600)
+            })
+            this.playerAttack = true
+            this.score+= 10
+        }
+        if (this.correctAnswer === undefined){
+            this.player.anims.play('player-standby', true)
+            this.enemy.anims.play('enemy-standby', true)
+        }
+        if(this.correctAnswer === false && !this.enemyAttack) {
+            this.enemy.anims.play('enemy-attack', true)
+            this.time.delayedCall(500, () => {
+                this.createSlash(this.enemy.x-60,
+                    this.enemy.y,2,-600,true)
+            })
+            this.enemyAttack = true
+            
+        }
+        this.scoreLabel.setText('score :' +this.score)
+
+        if(this.startGame = true){
+            this.timerLabel.setText('timer :'+this.timer)
+        }
 
     }
 
@@ -174,7 +226,11 @@ export default class MathFighterScene extends Phaser.Scene
         this.resultText = this.add.text(this.gameHalfWidth,200,
         '0', { fontSize : '32px', fill: '#000'})
         this.questionText = this.add.text(this.gameHalfWidth,100,
-            '0', { fontSize : '32px', fill: '#000'})
+        '0', { fontSize : '32px', fill: '#000'})
+
+        this.input.on('gameobjectdown', this.addNumber, this)
+
+        this.generateQuestion()
 
 
     }
@@ -186,47 +242,47 @@ export default class MathFighterScene extends Phaser.Scene
         const heightDiff = 71.25
 
         //center buttons
-        this.button2 =this.addimage(this.gameHalfWidth,startPosY,
+        this.button2 =this.add.image(this.gameHalfWidth,startPosY,
         'numbers', 1).setInteractive().setData('value', 2)
 
-        this.button5 =this.addimage(this.gameHalfWidth,this.button2.startPosY
+        this.button5 =this.add.image(this.gameHalfWidth,this.button2.y
         + heightDiff, 'numbers',4).setInteractive().setData('value', 5)
 
-        this.button8 =this.addimage(this.gameHalfWidth,this.button5.startPosY
+        this.button8 =this.add.image(this.gameHalfWidth,this.button5.y
         + heightDiff, 'numbers',7).setInteractive().setData('value', 8)
 
-        this.button0 =this.addimage(this.gameHalfWidth,this.button8.startPosY
+        this.button0 =this.add.image(this.gameHalfWidth,this.button8.y
         + heightDiff, 'numbers',10).setInteractive().setData('value', 0)
 
         //left side
-        this.button1 =this.addimage(this.button2.x - widthDiff,startPosY,
+        this.button1 =this.add.image(this.button2.x - widthDiff,startPosY,
         'numbers', 0).setInteractive().setData('value', 1)
     
-        this.button4 =this.addimage(this.button5.x - widthDiff,
+        this.button4 =this.add.image(this.button5.x - widthDiff,
         this.button1.y + heightDiff, 'numbers',3).setInteractive()
         .setData('value', 4)
     
-        this.button7 =this.addimage(this.button8.x - widthDiff,
+        this.button7 =this.add.image(this.button8.x - widthDiff,
         this.button4.y + heightDiff, 'numbers',6).setInteractive()
         .setData('value', 7)
 
-        this.buttonDel =this.addimage(this.button0.x - widthDiff,
+        this.buttonDel =this.add.image(this.button0.x - widthDiff,
         this.button7.y + heightDiff, 'numbers',9).setInteractive()
         .setData('value', 'del')
 
         //right side
-        this.button3 =this.addimage(this.button2.x - widthDiff,startPosY,
+        this.button3 = this.add.image(this.button2.x + widthDiff,startPosY,
         'numbers', 2).setInteractive().setData('value', 3)
 
-        this.button6 =this.addimage(this.button5.x - widthDiff,
+        this.button6 = this.add.image(this.button5.x + widthDiff,
         this.button3.y + heightDiff, 'numbers',5).setInteractive()
         .setData('value', 6)
         
-        this.button9 =this.addimage(this.button8.x - widthDiff,
+        this.button9 = this.add.image(this.button8.x + widthDiff,
         this.button6.y + heightDiff, 'numbers',8).setInteractive()
         .setData('value', 9)
     
-        this.buttonOk =this.addimage(this.button0.x - widthDiff,
+        this.buttonOk = this.add.image(this.button0.x + widthDiff,
         this.button9.y + heightDiff, 'numbers',11).setInteractive()
         .setData('value', 'ok')
     
@@ -259,5 +315,96 @@ export default class MathFighterScene extends Phaser.Scene
                 }
             }
         }
+
+        this.number = parseInt(this.numberArray.join(''))
+
+        this.resultText.setText(this.number)
+        const textHalfWidth = this.resultText.width * 0.5
+        this.resultText.setX(this.gameHalfWidth - textHalfWidth)
+        event.stopPropagation()
     }
+
+    getOperator(){
+        const operator = ['+', '-', 'x', ':']
+        return operator[Phaser.Math.Between(0,3)]
+    }
+
+    generateQuestion(){
+        let numberA = Phaser.Math.Between(0, 50)
+        let numberB = Phaser.Math.Between(0, 50)
+        let operator = this.getOperator()
+        if (operator === '+') {
+            this.question[0] = '${numberA} + ${numberB}'
+            this.question[1] = numberA + numberB
+        }
+        if (operator === 'x'){
+            this.question[0] = '${numberA} x ${numberB}'
+            this.question[1] = numberA * numberB
+        }
+        if (operator === '-'){
+            this.question[0] = '${numberA} - ${numberB}'
+            this.question[1] = numberA - numberB
+        } else {
+            this.question[0] = '${numberA} - ${numberB}'
+            this.question[1] = numberA - numberB
+        }
+        if (operator === ':'){
+            do {
+                numberA = Phaser.Math.Between(0, 50)
+                numberB = Phaser.Math.Between(0, 50)
+            }while(!Number.isInteger(numberA/numberB))
+            this.question[0] = '${numberA} : {numberB}'
+            this.question[1] = numberA / numberB
+        }
+        this.resultText.setText(this.question[0])
+        const textHalfWidth = this.resultText.width * 0.5
+        this.resultText.setX(this.gameHalfWidth - textHalfWidth)
+    }
+
+    checkAnswer(){
+        if (this.number == this.question[1]){
+            this.correctAnswer = true
+        } else {
+            this.correctAnswer = false
+        }
+    }
+
+    createSlash(x, y, frame, velocity, flip = false){
+        this.slash.setPosition(x,y)
+        .setActive(true)
+        .setVisible(true)
+        .setFrame(frame)
+        setFlipX(flip)
+        .setVelocityX(velocity)
+    }
+
+    spriteHit(slash, sprite) {
+        slash.x = 0
+        slash.y = 0
+        slash.setActive(false)
+        slash.setVisible(false)
+        if (sprite.texture.key == 'player') {
+            sprite.anims.play('player-hit', true)
+        } else {
+            sprite.anims.play('enemy-hit', true)
+        }
+        this.time.delayedCall(500, () => {
+            this.playerAttack = false
+            this.enemyAttack = false
+            this.correctAnswer = undefined
+            this.generateQuestion()
+        })
+    }
+
+    // eslint-disable-next-line no-dupe-class-members
+    gameStart(){
+        this.countdown = this.time.addEvent({
+            delay:1000,
+            callback:this.gameOver,
+            callbackScope: this,
+            loop: true
+        })
+    }
+
+
 }
