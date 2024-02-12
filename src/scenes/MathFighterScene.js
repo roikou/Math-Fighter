@@ -232,6 +232,15 @@ export default class MathFighterScene extends Phaser.Scene
 
         this.generateQuestion()
 
+        this.countdown = this.time.addEvent({
+            delay:1000,
+            callback:this.gameOver,
+            callbackScope: this,
+            loop: true
+        })
+    }
+
+
 
     }
 
@@ -334,18 +343,18 @@ export default class MathFighterScene extends Phaser.Scene
         let numberB = Phaser.Math.Between(0, 50)
         let operator = this.getOperator()
         if (operator === '+') {
-            this.question[0] = '${numberA} + ${numberB}'
+            this.question[0] = `${numberA} + ${numberB}`
             this.question[1] = numberA + numberB
         }
         if (operator === 'x'){
-            this.question[0] = '${numberA} x ${numberB}'
+            this.question[0] = `${numberA} x ${numberB}`
             this.question[1] = numberA * numberB
         }
         if (operator === '-'){
-            this.question[0] = '${numberA} - ${numberB}'
+            this.question[0] = `${numberA} - ${numberB}`
             this.question[1] = numberA - numberB
         } else {
-            this.question[0] = '${numberA} - ${numberB}'
+            this.question[0] = `${numberA} - ${numberB}`
             this.question[1] = numberA - numberB
         }
         if (operator === ':'){
@@ -353,7 +362,7 @@ export default class MathFighterScene extends Phaser.Scene
                 numberA = Phaser.Math.Between(0, 50)
                 numberB = Phaser.Math.Between(0, 50)
             }while(!Number.isInteger(numberA/numberB))
-            this.question[0] = '${numberA} : {numberB}'
+            this.question[0] = `${numberA} : {numberB}`
             this.question[1] = numberA / numberB
         }
         this.resultText.setText(this.question[0])
@@ -374,7 +383,7 @@ export default class MathFighterScene extends Phaser.Scene
         .setActive(true)
         .setVisible(true)
         .setFrame(frame)
-        setFlipX(flip)
+        .setFlipX(flip)
         .setVelocityX(velocity)
     }
 
@@ -397,14 +406,13 @@ export default class MathFighterScene extends Phaser.Scene
     }
 
     // eslint-disable-next-line no-dupe-class-members
-    gameStart(){
-        this.countdown = this.time.addEvent({
-            delay:1000,
-            callback:this.gameOver,
-            callbackScope: this,
-            loop: true
-        })
+    gameOver() {
+        this.timer--
+        if (this.timer < 0) {
+            this.scene.start('over-scene',{ score: this.score})
+        }
     }
 
+    
+        
 
-}
